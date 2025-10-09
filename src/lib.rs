@@ -1,4 +1,6 @@
-use crate::ram::Ram;
+mod components;
+
+use components::ram::Ram;
 
 pub struct Chip8 {
     ram: Ram,

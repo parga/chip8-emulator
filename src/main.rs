@@ -1,6 +1,3 @@
-pub mod ram;
-pub mod chip8;
-
 use std::{fs::File, io::Read};
 
 use chip8::Chip8;
