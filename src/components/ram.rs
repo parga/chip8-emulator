@@ -34,9 +34,9 @@ impl Ram {
             }
         }
 
-        for i in 0..0x1ff {
-            print!("{:#X} ", ram.mem[i]);
-        }
+        // for i in 0..0x1ff {
+        //     print!("{:#X} ", ram.mem[i]);
+        // }
         ram
     }
 
