@@ -1,10 +1,11 @@
+#[derive(Debug)]
 pub struct Ram {
     mem: [u8; 4096],
 }
 
 impl Ram {
     pub fn new() -> Self {
-        let ram = Ram { mem: [0; 4096] };
+        let mut ram = Ram { mem: [0; 4096] };
 
         let sprites: [[u8; 5]; 16] = [
             [0xF0, 0x90, 0x90, 0x90, 0xF0], // 0
@@ -24,6 +25,18 @@ impl Ram {
             [0xF0, 0x80, 0xF0, 0x80, 0xF0], // E
             [0xF0, 0x80, 0xF0, 0x80, 0x80], // F
         ];
+       
+        let mut i = 0;
+        for sprite in sprites.iter() {
+            for ch in sprite {
+                ram.mem[i] = *ch;
+                i += 1;
+            }
+        }
+
+        for i in 0..0x1ff {
+            print!("{:#X} ", ram.mem[i]);
+        }
         ram
     }
 
@@ -31,12 +44,11 @@ impl Ram {
         self.mem[address as usize] = value;
     }
 
-    pub fn read_byte(&mut self, _address: u16, _value: u8) {
-        unimplemented!()
+    pub fn read_byte(&mut self, address: u16) -> u8 {
+        self.mem[address as usize] 
     }
 }
 
-#[warn(dead_code)]
 impl Default for Ram {
     fn default() -> Self {
         Self::new()

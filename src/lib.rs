@@ -19,7 +19,6 @@ impl Chip8 {
     }
 }
 
-#[warn(dead_code)]
 impl Default for Chip8 {
     fn default() -> Self {
         Self::new()

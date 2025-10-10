@@ -9,7 +9,6 @@ fn main() {
     match number_of_bits {
         Ok(n) => {
             print!("Read {n} bytes.");
-            return ()
         }
         Err(e) => println!("Error reading file: {e}"),
     }
