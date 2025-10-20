@@ -8,7 +8,7 @@ fn main() {
     let number_of_bits = file.read_to_end(&mut data);
     match number_of_bits {
         Ok(n) => {
-            print!("Read {n} bytes.");
+            println!("Read {n} bytes.");
         }
         Err(e) => println!("Error reading file: {e}"),
     }
