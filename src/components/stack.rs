@@ -1,0 +1,7 @@
+struct Stack {
+
+}
+
+impl Stack {
+
+}

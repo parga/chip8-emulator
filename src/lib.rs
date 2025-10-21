@@ -1,7 +1,9 @@
-mod components;
+pub mod components;
 
 use components::ram::Ram;
 use components::cpu::Cpu;
+use components::keyboard::Chip8Keyboard;
+
 
 pub struct Chip8 {
     ram: Ram,
@@ -20,8 +22,8 @@ impl Chip8 {
         });
     }
 
-    pub fn run_instruction(&mut self) {
-        self.cpu.run_instruction(&mut self.ram);
+    pub fn run_instruction(&mut self, keyboard: &dyn Chip8Keyboard) {
+        self.cpu.run_instruction(&mut self.ram, keyboard);
         println!("Cpu state -------------------- \n{:?}", self.cpu) 
     }
 }
