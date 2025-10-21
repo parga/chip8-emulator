@@ -68,7 +68,7 @@ impl Ram {
         let lo = self.read_byte(current_stack_address - 1) as u16;
         self.sp -= 2;
         println!(
-            "comming back to address {:X} {:x} =  {:X}",
+            "comming back to address hi:{:X} lo:{:X} =  {:X}",
             hi << 8,
             lo,
             (hi << 8) | lo
