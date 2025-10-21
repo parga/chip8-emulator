@@ -1,11 +1,16 @@
-#[derive(Default)]
 pub struct Display {
-    screen: [[]]
+    screen: [[u8; 64]; 32],
+    width: u8,
+    height: u8
 }
 
 impl Display {
     pub fn new() -> Self {
-        Display {}
+        Display {
+            screen: [[0; 64]; 32],
+            width: 64,
+            height: 32,
+        }
     }
 
     pub fn debug_draw_byte(&self, mut byte: u8, _x: u8, _y: u8) {
