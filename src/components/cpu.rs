@@ -53,17 +53,43 @@ impl Cpu {
                 self.pc = nnn;
                 self.pc -= 2; // compensate for pc += 2 at the end
             }
+            0x2 => {
+                ram.push_to_stack(self.pc + 2);
+                self.pc = nnn;
+                self.pc -= 2;
+            }
+            0x3 => {
+                let vx = self.read_reg_vx(x as u16);
+                if vx == nn {
+                    self.pc += 2;
+                }
+            }
             0x6 => {
                 // vx := NN
                 self.write_reg_vx(x, nn)
             }
-            0xD => {
-                self.debug_drawn_sprite(ram, x, y, n); // draw sprite at (Vx, Vy) with height N
+            0x7 => {
+                // vx += nn
+                let mut vx = self.read_reg_vx(x as u16);
+                vx = vx.wrapping_add(nn);
+                self.write_reg_vx(x, vx);
             }
             0xA => {
                 // I := NNN
                 println!("Set I to {:#X}", nnn);
                 self.i = nnn;
+            }
+            0xD => {
+                self.debug_drawn_sprite(ram, x, y, n); // draw sprite at (Vx, Vy) with height N
+            }
+            0xF => {
+                match nn {
+                    0x1E => {
+                        let vx = self.read_reg_vx(x as u16);
+                        self.i = self.i.wrapping_add(vx as u16);
+                    }
+                    _ => unreachable!()
+                }
             }
             _ => panic!(
                 "unrecognized intruction :{:#X} in pc :{:#X}",
@@ -86,20 +112,17 @@ impl Cpu {
 
     fn debug_drawn_sprite(&self, ram: &mut Ram, x: u8, y: u8, height: u8) {
         for row_index in 0..height {
-            let mut b = ram.read_byte((self.i as u8 + row_index + y) as u16);
-            // for _ in 0..8 {
-            //     match (b & 0b1000_0000) >> 7 {
-            //         0 => print!("_"),
-            //         1 => print!("#"),
-            //         _ => unreachable!(),
-            //     }
-            //     b <<= 1;
-            // }
-            println!("Sprite row {:#X}: {:#X}", (self.i as u8 + row_index +y) , b);
+            let mut b = ram.read_byte(self.i + row_index as u16);
+            for _ in 0..8 {
+                match (b & 0b1000_0000) >> 7 {
+                    0 => print!("_"),
+                    1 => print!("#"),
+                    _ => unreachable!(),
+                }
+                b <<= 1;
+            }
             println!();
         }
-        println!();
-        // println!("Drawing sprite of height {:#X}", height);
     }
 }
 
