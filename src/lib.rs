@@ -21,16 +21,21 @@ impl Chip8 {
         });
     }
 
-    pub fn run_instruction(&mut self) {
+    pub fn run_instruction(&mut self) -> bool {
         self.bus.tick();
-        self.cpu.run_instruction(&mut self.bus);
+        let needs_buffer_refresh = self.cpu.run_instruction(&mut self.bus);
         println!("Cpu state -------------------- ");
         println!("{:?}", self.cpu);
-        println!("{:?}", self.bus) 
-    }
+        println!("{:?}", self.bus); 
+        needs_buffer_refresh
+   }
 
     pub fn tick(&mut self) {
         self.bus.tick();
+    }
+
+    pub fn get_display_buffer(&self) -> Vec<u32> {
+        self.bus.get_display_buffer()
     }
 }
 

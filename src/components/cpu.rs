@@ -21,7 +21,8 @@ impl Cpu {
         }
     }
 
-    pub fn run_instruction(&mut self, bus: &mut Bus) {
+    pub fn run_instruction(&mut self, bus: &mut Bus) -> bool {
+        let mut needs_buffer_refresh = false; 
         let hi = bus.ram_read_byte(self.pc) as u16;
         let lo = bus.ram_read_byte(self.pc + 1) as u16;
         let instruction = (hi << 8) | lo;
@@ -148,6 +149,7 @@ impl Cpu {
                 let vx = self.read_reg_vx(x);
                 let vy = self.read_reg_vx(y);
                 self.debug_drawn_sprite(bus,vx, vy, n);
+                needs_buffer_refresh = true;
             }
             0xE => match nn {
                 0xA1 => {
@@ -197,6 +199,7 @@ impl Cpu {
             ),
         }
         self.pc += 2;
+        needs_buffer_refresh
     }
 
     fn write_reg_vx(&mut self, x: u8, value: u8) {

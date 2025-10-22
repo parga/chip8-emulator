@@ -101,6 +101,10 @@ impl Bus {
     pub fn tick(&mut self) {
         self.clock.tick()
     }
+
+    pub fn get_display_buffer(&self) -> Vec<u32> {
+        self.display.get_display_buffer() 
+    }
 }
 
 impl Debug for Bus {
