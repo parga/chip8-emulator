@@ -47,7 +47,12 @@ impl Cpu {
         );
         match (instruction & 0xF000) >> 12 {
             0x0 => match nn {
+                0xE0 => {
+                    // clear the display
+                    bus.clear_screen();
+                }
                 0xEE => {
+                    // return from function
                     let address = bus.pop_from_stack();
                     self.pc = address;
                     self.pc -= 2; // compensate for pc += 2 at the end
@@ -82,14 +87,57 @@ impl Cpu {
                 vx = vx.wrapping_add(nn);
                 self.write_reg_vx(x, vx);
             }
-            0x8 => match n {
-                0x0 => {
-                    // vx = vy
-                    let vy = self.read_reg_vx(y);
-                    self.write_reg_vx(x, vy);
+            0x8 => {
+                let vx = self.read_reg_vx(x);
+                let vy = self.read_reg_vx(y);
+
+                match n {
+                    0x0 => {
+                        // vx = vy
+                        self.write_reg_vx(x, vy);
+                    }
+                    0x1 => {
+                        // vx = vx | vy
+                        self.write_reg_vx(x, vx | vy);
+                    }
+                    0x2 => {
+                        // vx = vx & vy
+                        self.write_reg_vx(x, vx & vy);
+                    }
+                    0x3 => {
+                        // vx = vx^vy
+                        self.write_reg_vx(x, vx ^ vy);
+                    }
+                    0x4 => {
+                        // vx += vy
+                        let (result, carry) = vx.overflowing_add(vy);
+                        self.write_reg_vx(x, result);
+                        self.write_reg_vx(0xF, if carry { 1 } else { 0 });
+                    }
+                    0x5 => {
+                        // vx -= vy
+                        self.write_reg_vx(0xF, if vx > vy { 1 } else { 0 });
+                        self.write_reg_vx(x, vx.wrapping_sub(vy));
+                    }
+                    0x6 => {
+                        // vx = vx >> 1
+                        self.write_reg_vx(0xF, vx & 0x1);
+                        self.write_reg_vx(x, vx >> 1);
+                    }
+                    0x7 => {
+                        // vx = vy - vx
+                        self.write_reg_vx(0xF, if vy > vx { 1 } else { 0 });
+                        self.write_reg_vx(x, vy.wrapping_sub(vx));
+                    }
+                    0x8 => {
+                        // vx = vx << 1
+                        self.write_reg_vx(0xF, (vx & 0b1000_0000) >> 7);
+                        self.write_reg_vx(x, vx << 1);
+                    }
+
+                    _ => unreachable!(),
                 }
-                _ => unreachable!(),
-            },
+            }
             0xA => {
                 // I := NNN
                 println!("Set I to {:#X}", nnn);
@@ -106,6 +154,11 @@ impl Cpu {
                         self.pc += 2
                     }
                 }
+                0x9E => {
+                    if bus.is_key_pressed(self.read_reg_vx(x)) {
+                        self.pc += 2
+                    }
+                }
                 _ => unreachable!(),
             },
             0xF => match nn {
@@ -115,10 +168,20 @@ impl Cpu {
                     self.i = self.i.wrapping_add(vx as u16);
                 }
                 0x65 => {
+                    // `LD V0~Vx, [I]`
+                    // store what is in memory startin in I into vx
                     for offset in 0..=x {
                         let value = bus.ram_read_byte(self.i + offset as u16);
                         self.write_reg_vx(offset, value);
                     }
+                }
+                0x15 => {
+                    // Set delay timer to Vx
+                    let vx = self.read_reg_vx(x);
+                    bus.set_delay_timer(vx);
+                }
+                0x07 => {
+                    self.write_reg_vx(x, bus.get_delay_timer());
                 }
                 _ => unreachable!(),
             },
@@ -144,12 +207,24 @@ impl Cpu {
         value
     }
 
-    fn debug_drawn_sprite(&self, bus: &mut Bus, x: u8, y: u8, height: u8) {
+    fn debug_drawn_sprite(&mut self, bus: &mut Bus, x: u8, y: u8, height: u8) {
         println!("Drawing byte at position x:{}, y:{}", x, y);
-        for row_index in 0..height {
-            let b = bus.ram_read_byte(self.i + row_index as u16);
-            bus.debug_draw_byte(b, x, y);
+        let mut should_set_vf = false;
+        for y in 0..height {
+            let b = bus.ram_read_byte(self.i + y as u16);
+            if bus.debug_draw_byte(b, x, y) {
+                should_set_vf = true;
+            }
         }
+
+        // if any if the pixels was changed from set to unset
+        // we set VF to 1
+        if should_set_vf {
+            self.write_reg_vx(0xF, 1);
+        } else {
+            self.write_reg_vx(0xF, 0);
+        }
+        bus.present_screen();
         println!();
     }
 }

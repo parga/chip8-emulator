@@ -1,32 +1,57 @@
 use super::display::Display;
-use super::ram::Ram;
 use super::keyboard::Keyboard;
+use super::ram::Ram;
+
+#[derive(Default)]
+pub struct Clock {}
+
+impl Clock {
+    pub fn new() -> Self {
+        Self {}
+    }
+    pub fn set_delay_timer(&self, delay: u8) {
+        println!("setting delay of {:?} seconds", delay);
+    }
+    pub fn get_delay_timer(&self) -> u8 {
+        1
+    }
+}
 
 #[derive(Default)]
 pub struct Bus {
     pub ram: Ram,
     keyboard: Keyboard,
-    display: Display
+    display: Display,
+    clock: Clock,
 }
 
 impl Bus {
     pub fn new() -> Self {
         Bus {
-            ram: Ram::new(), 
+            ram: Ram::new(),
             display: Display::new(),
-            keyboard: Keyboard::new()
+            keyboard: Keyboard::new(),
+            clock: Clock::new(),
         }
     }
     pub fn ram_read_byte(&mut self, address: u16) -> u8 {
         self.ram.read_byte(address)
     }
 
-    pub fn ram_write_byte(&mut self, address: u16, value: u8 ) {
+    pub fn ram_write_byte(&mut self, address: u16, value: u8) {
         self.ram.write_byte(address, value);
     }
 
-    pub fn debug_draw_byte(&mut self, byte: u8, x: u8, y: u8) {
-        self.display.debug_draw_byte(byte, x, y);
+    pub fn debug_draw_byte(&mut self, byte: u8, x: u8, y: u8) -> bool {
+        self.display.debug_draw_byte(byte, x, y)
+    }
+
+    pub fn present_screen(&self) {
+        self.display.present_screen();
+    }
+
+    pub fn clear_screen(&mut self) {
+        self.display.clear_screen();
     }
 
     pub fn push_to_stack(&mut self, address_value: u16) {
@@ -38,5 +63,13 @@ impl Bus {
 
     pub fn is_key_pressed(&self, key_code: u8) -> bool {
         self.keyboard.is_key_pressed(key_code)
+    }
+
+    pub fn set_delay_timer(&self, delay: u8) {
+        self.clock.set_delay_timer(delay)
+    }
+
+    pub fn get_delay_timer(&self) -> u8 {
+        self.clock.get_delay_timer()
     }
 }

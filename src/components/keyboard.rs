@@ -10,7 +10,7 @@ pub struct Keyboard {
 
 impl Keyboard {
     pub fn new() -> Self {
-        Self { keys: [false; 16] }
+        Self { keys: [true; 16] }
     }
     pub fn is_key_pressed(&self, key_code: u8) -> bool {
         if key_code < 16 {
