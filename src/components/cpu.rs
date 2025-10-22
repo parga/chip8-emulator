@@ -145,7 +145,9 @@ impl Cpu {
             }
             0xD => {
                 // draw sprite at (Vx, Vy) with height N
-                self.debug_drawn_sprite(bus, x, y, n);
+                let vx = self.read_reg_vx(x);
+                let vy = self.read_reg_vx(y);
+                self.debug_drawn_sprite(bus,vx, vy, n);
             }
             0xE => match nn {
                 0xA1 => {
@@ -182,6 +184,10 @@ impl Cpu {
                 }
                 0x07 => {
                     self.write_reg_vx(x, bus.get_delay_timer());
+                }
+                0x0A => {
+                    // wait for a key press and store it in vx
+                    panic!("unimplemented instruction 0xF00A");
                 }
                 _ => unreachable!(),
             },

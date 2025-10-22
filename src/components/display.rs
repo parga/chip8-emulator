@@ -46,9 +46,9 @@ impl Display {
         for y in 0..HEIGHT {
             for x in 0..WIDTH {
                 if self.screen[y][x] == 0 {
-                    print!("_");
+                    print!(" ");
                 } else {
-                    print!("#");
+                    print!("@");
                 }
             }
             println!();
