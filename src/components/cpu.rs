@@ -37,9 +37,10 @@ impl Cpu {
         let x = ((instruction & 0x0F00) >> 8) as u8; // bits 8-11
         let y = ((instruction & 0x00F0) >> 4) as u8; // bits 4-7
 
-        if self.prev_pc == self.pc {
+        if self.prev_pc == self.pc && ((instruction & 0xF0FF) != 0xF00A) {
             panic!("Stuck in infinite loop at pc={:#X}", self.pc);
         }
+
         self.prev_pc = self.pc;
 
         println!(
@@ -51,6 +52,7 @@ impl Cpu {
                 0xE0 => {
                     // clear the display
                     bus.clear_screen();
+                    needs_buffer_refresh = true;
                 }
                 0xEE => {
                     // return from function
@@ -189,7 +191,16 @@ impl Cpu {
                 }
                 0x0A => {
                     // wait for a key press and store it in vx
-                    panic!("unimplemented instruction 0xF00A");
+                    let key = bus.get_key_blocking();
+                    match key {
+                        Some(k) => {
+                            self.write_reg_vx(x, k);
+                        }
+                        None => {
+                            // no key pressed, repeat this instruction
+                            self.pc -= 2;
+                        }
+                    }
                 }
                 _ => unreachable!(),
             },
@@ -219,9 +230,9 @@ impl Cpu {
     fn debug_drawn_sprite(&mut self, bus: &mut Bus, x: u8, y: u8, height: u8) {
         println!("Drawing byte at position x:{}, y:{}", x, y);
         let mut should_set_vf = false;
-        for y in 0..height {
-            let b = bus.ram_read_byte(self.i + y as u16);
-            if bus.debug_draw_byte(b, x, y) {
+        for row in 0..height {
+            let b = bus.ram_read_byte(self.i + row as u16);
+            if bus.debug_draw_byte(b, x, y + row) {
                 should_set_vf = true;
             }
         }

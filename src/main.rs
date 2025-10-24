@@ -1,10 +1,11 @@
 use chip8::Chip8;
-use minifb::{Key, Window, WindowOptions};
+use minifb::{Key, KeyRepeat, Window, WindowOptions};
 use std::time::{Duration, Instant};
-use std::{fs::File, io::Read}; // Adjust this import as needed
+use std::{fs::File, io::Read};
 
 const TIMER_HZ: u64 = 60;
-const INSTRUCTION_HZ: u64 = 500; // Typical value, adjust as needed
+const INSTRUCTION_HZ: u64 = 600;
+
 fn scale_buffer(buffer: &[u32], width: usize, height: usize, scale: usize) -> Vec<u32> {
     let scaled_width = width * scale;
     let scaled_height = height * scale;
@@ -23,6 +24,36 @@ fn scale_buffer(buffer: &[u32], width: usize, height: usize, scale: usize) -> Ve
         }
     }
     scaled
+}
+
+fn map_window_pressed_keys_to_chip8_u16(window_key_pressed: Vec<Key>) -> u16 {
+    // CHIP-8 key mapping: index corresponds to CHIP-8 key value
+    let chip8_key_map = [
+        Key::X,    // 0
+        Key::Key1, // 1
+        Key::Key2, // 2
+        Key::Key3, // 3
+        Key::Q,    // 4
+        Key::W,    // 5
+        Key::E,    // 6
+        Key::A,    // 7
+        Key::S,    // 8
+        Key::D,    // 9
+        Key::Z,    // A
+        Key::C,    // B
+        Key::Key4, // C
+        Key::R,    // D
+        Key::F,    // E
+        Key::V,    // F
+    ];
+
+    let mut bitmask = 0u16;
+    for (chip8_idx, &mapped_key) in chip8_key_map.iter().enumerate() {
+        if window_key_pressed.contains(&mapped_key) {
+            bitmask |= 1 << chip8_idx
+        }
+    }
+    bitmask
 }
 
 fn main() {
@@ -61,7 +92,12 @@ fn main() {
     while window.is_open() && !window.is_key_down(Key::Escape) {
         let mut needs_buffer_refresh = false;
         if last_instruction.elapsed() >= instruction_interval {
+            chip8.set_keys(map_window_pressed_keys_to_chip8_u16(
+                window.get_keys_pressed(KeyRepeat::No),
+            ));
             needs_buffer_refresh = chip8.run_instruction();
+            chip8.run_instruction();
+            window.update();
             last_instruction = Instant::now();
         }
 
@@ -80,7 +116,7 @@ fn main() {
             window
                 .update_with_buffer(&scaled_buffer, width * scale, height * scale)
                 .unwrap();
-        }
+        } 
 
         // Sleep a bit to avoid busy-waiting
         std::thread::sleep(Duration::from_micros(100));

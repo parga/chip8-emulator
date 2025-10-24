@@ -23,6 +23,7 @@ impl Display {
     pub fn get_index_from_coord(x: usize, y: usize) -> usize {
         y * WIDTH + x
     }
+
     pub fn debug_draw_byte(&mut self, byte: u8, x: u8, y: u8) -> bool {
         let mut flipped = false;
         let mut cord_x = x as usize;

@@ -105,6 +105,13 @@ impl Bus {
     pub fn get_display_buffer(&self) -> Vec<u32> {
         self.display.get_display_buffer() 
     }
+
+    pub fn set_keys(&mut self, pressed_keys: u16) {
+        self.keyboard.set_keys(pressed_keys);
+    }
+    pub fn get_key_blocking(&self) -> Option<u8> {
+        self.keyboard.get_key_blocking()
+    }
 }
 
 impl Debug for Bus {
