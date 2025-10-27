@@ -1,10 +1,10 @@
 use chip8::Chip8;
-use minifb::{Key, KeyRepeat, Window, WindowOptions};
+use minifb::{Key, Window, WindowOptions};
 use std::time::{Duration, Instant};
 use std::{fs::File, io::Read};
 
 const TIMER_HZ: u64 = 60;
-const INSTRUCTION_HZ: u64 = 600;
+const INSTRUCTION_HZ: u64 = 500;
 
 fn scale_buffer(buffer: &[u32], width: usize, height: usize, scale: usize) -> Vec<u32> {
     let scaled_width = width * scale;
@@ -27,7 +27,6 @@ fn scale_buffer(buffer: &[u32], width: usize, height: usize, scale: usize) -> Ve
 }
 
 fn map_window_pressed_keys_to_chip8_u16(window_key_pressed: Vec<Key>) -> u16 {
-    // CHIP-8 key mapping: index corresponds to CHIP-8 key value
     let chip8_key_map = [
         Key::X,    // 0
         Key::Key1, // 1
@@ -57,7 +56,9 @@ fn map_window_pressed_keys_to_chip8_u16(window_key_pressed: Vec<Key>) -> u16 {
 }
 
 fn main() {
-    let mut file = File::open("data/INVADERS").unwrap();
+    // let mut file = File::open("data/INVADERS").unwrap();
+    // let mut file = File::open("data/pong.rom").unwrap();
+    let mut file = File::open("data/tetris.rom").unwrap();
     let mut data = Vec::<u8>::new();
     let number_of_bits = file.read_to_end(&mut data);
     match number_of_bits {
@@ -72,7 +73,7 @@ fn main() {
 
     let width = 64;
     let height = 32;
-    let scale = 5;
+    let scale = 10;
     let mut window = Window::new(
         "Chip 8",
         width * scale,
@@ -112,6 +113,6 @@ fn main() {
         }
 
         // Sleep a bit to avoid busy-waiting
-        // std::thread::sleep(Duration::from_micros(100));
+        std::thread::sleep(Duration::from_micros(100));
     }
 }

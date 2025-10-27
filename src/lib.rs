@@ -23,13 +23,12 @@ impl Chip8 {
         });
     }
 
-    pub fn run_instruction(&mut self) -> bool {
+    pub fn run_instruction(&mut self) {
         self.bus.tick();
-        let needs_buffer_refresh = self.cpu.run_instruction(&mut self.bus);
+        self.cpu.run_instruction(&mut self.bus);
         println!("Cpu state -------------------- ");
         println!("{:?}", self.cpu);
         println!("{:?}", self.bus);
-        needs_buffer_refresh
     }
 
     pub fn tick(&mut self) {

@@ -21,8 +21,7 @@ impl Cpu {
         }
     }
 
-    pub fn run_instruction(&mut self, bus: &mut Bus) -> bool {
-        let mut needs_buffer_refresh = false; 
+    pub fn run_instruction(&mut self, bus: &mut Bus) {
         let hi = bus.ram_read_byte(self.pc) as u16;
         let lo = bus.ram_read_byte(self.pc + 1) as u16;
         let instruction = (hi << 8) | lo;
@@ -52,7 +51,6 @@ impl Cpu {
                 0xE0 => {
                     // clear the display
                     bus.clear_screen();
-                    needs_buffer_refresh = true;
                 }
                 0xEE => {
                     // return from function
@@ -77,6 +75,13 @@ impl Cpu {
                 // if vx == nn skip next instruction
                 let vx = self.read_reg_vx(x);
                 if vx == nn {
+                    self.pc += 2;
+                }
+            }
+            0x4 => {
+                // if vx != nn skip next instruction
+                let vx = self.read_reg_vx(x);
+                if vx != nn {
                     self.pc += 2;
                 }
             }
@@ -141,17 +146,30 @@ impl Cpu {
                     _ => unreachable!(),
                 }
             }
+            0x9 => {
+                // if vx != vy skip next instruction
+                let vx = self.read_reg_vx(x);
+                let vy = self.read_reg_vx(y);
+                if vx != vy {
+                    self.pc += 2;
+                }
+            }
             0xA => {
                 // I := NNN
                 println!("Set I to {:#X}", nnn);
                 self.i = nnn;
+            }
+            0xC => {
+                // vx = random byte AND nn
+                let random_byte: u8 = rand::random();
+                let result = random_byte & nn;
+                self.write_reg_vx(x, result);
             }
             0xD => {
                 // draw sprite at (Vx, Vy) with height N
                 let vx = self.read_reg_vx(x);
                 let vy = self.read_reg_vx(y);
                 self.debug_drawn_sprite(bus,vx, vy, n);
-                needs_buffer_refresh = true;
             }
             0xE => match nn {
                 0xA1 => {
@@ -202,6 +220,27 @@ impl Cpu {
                         }
                     }
                 }
+                0x18 => {
+                    // set sound timer to vx
+                    let vx = self.read_reg_vx(x);
+                    bus.set_sound_timer(vx);
+                }
+                0x33 => {
+                    // store bcd representation of vx in memory at I, I+1, I+2
+                    let vx = self.read_reg_vx(x);
+                    let hundreds = vx / 100;
+                    let tens = (vx % 100) / 10;
+                    let units = vx % 10;
+                    bus.ram_write_byte(self.i, hundreds);
+                    bus.ram_write_byte(self.i + 1, tens);
+                    bus.ram_write_byte(self.i + 2, units);
+                }
+                0x29 => {
+                    // set I to the location of the sprite for the character in vx
+                    let vx = self.read_reg_vx(x);
+                    let sprite_address = (vx as u16) * 5; // each sprite is 5 bytes long
+                    self.i = sprite_address;
+                }
                 _ => unreachable!(),
             },
             _ => panic!(
@@ -210,7 +249,6 @@ impl Cpu {
             ),
         }
         self.pc += 2;
-        needs_buffer_refresh
     }
 
     fn write_reg_vx(&mut self, x: u8, value: u8) {
