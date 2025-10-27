@@ -65,7 +65,7 @@ impl Bus {
     }
 
     pub fn present_screen(&self) {
-        self.display.present_screen();
+        self.display.present_screen_to_terminal();
     }
 
     pub fn clear_screen(&mut self) {
@@ -94,6 +94,7 @@ impl Bus {
     pub fn set_sound_timer(&mut self, sound: u8) {
         self.clock.set_sound_timer(sound)
     }
+
     pub fn get_sound_timer(&self) -> u8 {
         self.clock.get_sound_timer()
     }
@@ -116,8 +117,9 @@ impl Bus {
 
 impl Debug for Bus {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Delay timer: {:?}", self.clock.get_delay_timer()).unwrap();
-        write!(f, "Keyboard: {:X}", self.keyboard.keys).unwrap();
+        write!(f, "Delay timer: {:?} ", self.clock.get_delay_timer()).unwrap();
+        write!(f, "Keyboard: {:X}  ", self.keyboard.keys).unwrap();
+        write!(f, "Keyboard: {:X}", self.clock.get_sound_timer()).unwrap();
         Ok(())
     }
 }

@@ -47,7 +47,7 @@ impl Display {
         flipped
     }
 
-    pub fn present_screen(&self) {
+    pub fn present_screen_to_terminal(&self) {
         for index in 0..self.screen.len() {
             let pixel = self.screen[index];
 
@@ -61,17 +61,6 @@ impl Display {
             }
         }
         println!();
-        // for y in 0..HEIGHT {
-        //     for x in 0..WIDTH {
-        //         let index = Display::get_index_from_coord(x, y);
-        //         if self.screen[index] == 0 {
-        //             print!(" ");
-        //         } else {
-        //             print!("@");
-        //         }
-        //     }
-        //     println!();
-        // }
     }
 
     pub fn clear_screen(&mut self) {

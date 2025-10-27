@@ -42,6 +42,10 @@ impl Chip8 {
     pub fn set_keys(&mut self, pressed_keys: u16) {
         self.bus.set_keys(pressed_keys);
     }
+
+    pub fn get_sound_timer(&self) -> u8 {
+        self.bus.get_sound_timer()
+    }
 }
 
 impl Default for Chip8 {

@@ -1,5 +1,7 @@
 use chip8::Chip8;
 use minifb::{Key, Window, WindowOptions};
+use rodio::source::SineWave;
+use rodio::{OutputStream, OutputStreamBuilder, Sink};
 use std::time::{Duration, Instant};
 use std::{fs::File, io::Read};
 
@@ -56,9 +58,9 @@ fn map_window_pressed_keys_to_chip8_u16(window_key_pressed: Vec<Key>) -> u16 {
 }
 
 fn main() {
-    // let mut file = File::open("data/INVADERS").unwrap();
+    let mut file = File::open("data/INVADERS").unwrap();
     // let mut file = File::open("data/pong.rom").unwrap();
-    let mut file = File::open("data/tetris.rom").unwrap();
+    // let mut file = File::open("data/tetris.rom").unwrap();
     let mut data = Vec::<u8>::new();
     let number_of_bits = file.read_to_end(&mut data);
     match number_of_bits {
@@ -90,6 +92,11 @@ fn main() {
     let mut last_timer = Instant::now();
     let mut last_instruction = Instant::now();
 
+    let stream_handle =
+        OutputStreamBuilder::open_default_stream().expect("Failed to open output stream");
+    let mut sink: Sink = Sink::connect_new(stream_handle.mixer());
+    let mut beep_playing = false;
+
     while window.is_open() && !window.is_key_down(Key::Escape) {
         chip8.set_keys(map_window_pressed_keys_to_chip8_u16(window.get_keys()));
         if last_instruction.elapsed() >= instruction_interval {
@@ -99,6 +106,21 @@ fn main() {
 
         if last_timer.elapsed() >= timer_interval {
             chip8.tick(); // Decrement timers
+
+            // Sound logic
+            let sound_timer = chip8.get_sound_timer();
+            if sound_timer > 0 {
+                if !beep_playing {
+                    sink = Sink::connect_new(stream_handle.mixer());
+                    sink.append(SineWave::new(440_f32));
+                    beep_playing = true;
+                }
+            } else if beep_playing {
+                sink.stop();
+                beep_playing = false;
+            }
+
+            // Display update
             let chip8_buffer = chip8.get_display_buffer();
             let color_buffer: Vec<u32> = chip8_buffer
                 .iter()

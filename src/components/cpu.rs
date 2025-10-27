@@ -282,7 +282,7 @@ impl Cpu {
         } else {
             self.write_reg_vx(0xF, 0);
         }
-        bus.present_screen();
+        // bus.present_screen();
         println!();
     }
 }
