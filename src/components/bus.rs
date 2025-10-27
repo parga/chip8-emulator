@@ -117,6 +117,7 @@ impl Bus {
 impl Debug for Bus {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Delay timer: {:?}", self.clock.get_delay_timer()).unwrap();
+        write!(f, "Keyboard: {:X}", self.keyboard.keys).unwrap();
         Ok(())
     }
 }

@@ -2,7 +2,6 @@ pub mod components;
 
 use components::bus::Bus;
 use components::cpu::Cpu;
-use minifb::Key;
 
 pub struct Chip8 {
     bus: Bus,

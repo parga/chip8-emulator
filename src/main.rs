@@ -90,23 +90,14 @@ fn main() {
     let mut last_instruction = Instant::now();
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
-        let mut needs_buffer_refresh = false;
+        chip8.set_keys(map_window_pressed_keys_to_chip8_u16(window.get_keys()));
         if last_instruction.elapsed() >= instruction_interval {
-            chip8.set_keys(map_window_pressed_keys_to_chip8_u16(
-                window.get_keys_pressed(KeyRepeat::No),
-            ));
-            needs_buffer_refresh = chip8.run_instruction();
             chip8.run_instruction();
-            window.update();
             last_instruction = Instant::now();
         }
 
         if last_timer.elapsed() >= timer_interval {
             chip8.tick(); // Decrement timers
-            last_timer = Instant::now();
-        }
-
-        if needs_buffer_refresh {
             let chip8_buffer = chip8.get_display_buffer();
             let color_buffer: Vec<u32> = chip8_buffer
                 .iter()
@@ -116,9 +107,11 @@ fn main() {
             window
                 .update_with_buffer(&scaled_buffer, width * scale, height * scale)
                 .unwrap();
-        } 
+
+            last_timer = Instant::now();
+        }
 
         // Sleep a bit to avoid busy-waiting
-        std::thread::sleep(Duration::from_micros(100));
+        // std::thread::sleep(Duration::from_micros(100));
     }
 }

@@ -35,21 +35,18 @@ impl Display {
                 break;
             }
             let index = Display::get_index_from_coord(cord_x, cord_y);
-            match (b & 0b1000_0000) >> 7 {
-                0 => {
-                    if self.screen[index] == 1 {
-                        flipped = true
-                    }
-                    self.screen[index] = 0;
-                }
-                1 => self.screen[index] = 1,
-                _ => unreachable!(),
+            let sprite_bit = (b & 0b1000_0000) >> 7;
+            let prev_pixel = self.screen[index];
+            self.screen[index] ^= sprite_bit;
+            if prev_pixel == 1 && self.screen[index] == 0 {
+                flipped = true;
             }
             cord_x += 1;
             b <<= 1;
         }
         flipped
     }
+
     pub fn present_screen(&self) {
         for index in 0..self.screen.len() {
             let pixel = self.screen[index];

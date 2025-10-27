@@ -5,7 +5,7 @@
 
 #[derive(Default)]
 pub struct Keyboard {
-    keys: u16,
+    pub keys: u16,
 }
 
 impl Keyboard {
@@ -26,8 +26,14 @@ impl Keyboard {
     }
 
     pub fn get_key_blocking(&self) -> Option<u8> {
-        (0..16).find(|&key_code| self.is_key_pressed(key_code))
-        // panic!("No key is currently pressed.");
+        if self.keys != 0 {
+            for key_code in 0..16 {
+                if (self.keys & (1 << key_code)) != 0 {
+                    return Some(key_code);
+                }
+            }
+        }
+        None
     }
 }
 

@@ -43,10 +43,10 @@ impl Cpu {
 
         self.prev_pc = self.pc;
 
-        println!(
-            "nnn={:X}, nn={:X}, n={:X}, x={:X}, y={:X}, sp={}",
-            nnn, nn, n, x, y, bus.ram.sp
-        );
+        // println!(
+        //     "nnn={:X}, nn={:X}, n={:X}, x={:X}, y={:X}, sp={}",
+        //     nnn, nn, n, x, y, bus.ram.sp
+        // );
         match (instruction & 0xF000) >> 12 {
             0x0 => match nn {
                 0xE0 => {
